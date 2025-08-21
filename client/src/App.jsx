@@ -11,7 +11,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const API = 'http://localhost:4000/api';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:4000/api';
 
 // Alanya semtleri - sadece ana semtler
 const ALANYA_DISTRICTS = [
@@ -312,14 +312,14 @@ function LoginScreen({ onAuthenticated, onAdminAccess, notify }) {
 
         {selectedRole === 'courier' && (
           <div id="courierLogin" className="login-form active">
-            <div className="form-group">
-              <label htmlFor="courierEmail">E-posta:</label>
-              <input type="email" id="courierEmail" placeholder="ornek@site.com" ref={courierEmailRef} />
-            </div>
-            <div className="form-group">
-              <label htmlFor="courierPassword">Şifre:</label>
-              <input type="password" id="courierPassword" placeholder="••••••••" ref={courierPasswordRef} />
-        </div>
+          <div className="form-group">
+            <label htmlFor="courierEmail">E-posta:</label>
+            <input type="email" id="courierEmail" placeholder="ornek@site.com" ref={courierEmailRef} />
+          </div>
+          <div className="form-group">
+            <label htmlFor="courierPassword">Şifre:</label>
+            <input type="password" id="courierPassword" placeholder="••••••••" ref={courierPasswordRef} />
+          </div>
 
             {!isLoginMode && (
               <>
@@ -387,7 +387,7 @@ function LoginScreen({ onAuthenticated, onAdminAccess, notify }) {
                 } else {
                   // Kayıt
                   const name = (courierNameRef.current?.value || '').trim();
-                  const phone = (courierPhoneRef.current?.value || '').trim();
+                const phone = (courierPhoneRef.current?.value || '').trim();
                   
                   if (!name) return notify('İsim zorunludur', 'error');
                   if (!phone) return notify('Telefon zorunludur', 'error');
@@ -401,21 +401,21 @@ function LoginScreen({ onAuthenticated, onAdminAccess, notify }) {
                     const d = await r.json(); 
                     if (!r.ok) throw new Error(d.error || 'Kayıt başarısız');
                     
-                    const token = d.token;
-                    const meRes = await fetch(`${API}/couriers/me`, { headers: { Authorization: `Bearer ${token}` } });
-                    const me = await meRes.json();
+                  const token = d.token;
+                  const meRes = await fetch(`${API}/couriers/me`, { headers: { Authorization: `Bearer ${token}` } });
+                  const me = await meRes.json();
                     
-                    // GPS izni varsa konumu gönder ve aktif yap
-                    try {
-                      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition((p) => res(p), () => res(null), { enableHighAccuracy: true, timeout: 5000 }));
-                      if (pos) {
+                  // GPS izni varsa konumu gönder ve aktif yap
+                  try {
+                    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition((p) => res(p), () => res(null), { enableHighAccuracy: true, timeout: 5000 }));
+                    if (pos) {
                         await fetch(`${API}/couriers/location`, { 
                           method: 'POST', 
                           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, 
                           body: JSON.stringify({ coords: { lng: pos.coords.longitude, lat: pos.coords.latitude } }) 
                         });
-                      }
-                    } catch {}
+                    }
+                  } catch {}
                     
                     await fetch(`${API}/couriers/status`, { 
                       method: 'POST', 
@@ -424,9 +424,9 @@ function LoginScreen({ onAuthenticated, onAdminAccess, notify }) {
                     });
                     
                     const uiUser = { id: me.me._id, name: me.me.name, phone, location: 'GPS ile takip ediliyor', status: 'available' };
-                    onAuthenticated('courier', token, me.me, uiUser);
+                  onAuthenticated('courier', token, me.me, uiUser);
                     notify(`Hoş geldiniz ${me.me.name}! Sistem aktif, siparişler gelmeye başlayabilir.`);
-                  } catch (e) { notify(e.message, 'error'); }
+                } catch (e) { notify(e.message, 'error'); }
                 }
               }}
             >
@@ -805,11 +805,11 @@ function MainApp({ role, currentUser, token, profile, onLogout, notify }) {
             }
             
             return {
-              id: c._id,
-              name: c.name,
+            id: c._id,
+            name: c.name,
               phone: c.phone || '-',
               location: 'GPS ile takip ediliyor',
-              status: 'available',
+            status: 'available',
               coordinates: c.location?.coordinates || [31.9957, 36.5441],
               distance: distance ? `${distance.toFixed(1)} km` : 'Konum bilgisi alınamadı'
             };
@@ -957,7 +957,7 @@ function MainApp({ role, currentUser, token, profile, onLogout, notify }) {
                 >
                   🗺️ Harita Görünümü
                 </button>
-              </div>
+          </div>
               
               {showMap ? (
                 <div className="map-container">
@@ -1025,8 +1025,8 @@ function MainApp({ role, currentUser, token, profile, onLogout, notify }) {
                     </div>
                   ))}
                   {nearbyCouriers.length === 0 && <div style={{ color: '#666' }}>Şu anda listelenecek kurye yok</div>}
-                </div>
-              )}
+        </div>
+      )}
             </div>
 
             {/* Dükkan Sipariş Geçmişi */}
